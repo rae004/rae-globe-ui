@@ -1,0 +1,26 @@
+name: CodeQL
+
+# Code scanning runs through the shared workflow in rae004/.github. It sets
+# the query set and the CodeQL version, and always scans the workflow files;
+# this repo passes only the languages its code is written in. Docs:
+# https://github.com/rae004/.github#code-scanning
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC, so alerts stay fresh in quiet weeks
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    uses: rae004/.github/.github/workflows/codeql.yml@45a58161ae49b052955564a5a6e8d2b86a64c041 # v0.3.1
+    with:
+      languages: '["python"]'
