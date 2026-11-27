@@ -21,6 +21,17 @@ uv run ruff check . && uv run ruff format --check .
 
 There is no Makefile, by choice. Use the commands directly.
 
+## Launch data
+
+- Source: Launch Library 2 (`db/src/globe_db/ll2.py`). Keep its field names
+  and nesting; `_FIELDS` lists what is kept.
+- `snapshot/launches.json` is real data written by `uv run globe-db snapshot`.
+  Never edit it by hand or invent records.
+- The free tier allows 15 requests an hour; `refresh` and `snapshot` use 2
+  each. Tests must not call the live API.
+- Tests run on in-memory SQLite. Check schema changes against real Postgres
+  with `uv run globe-db init` before opening a PR.
+
 ## Rules (from rae004/.github)
 
 - Never commit to `main`. Branch, open a PR, squash-merge.

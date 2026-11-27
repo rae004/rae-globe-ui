@@ -8,8 +8,36 @@ globe and the orbital path the launched vehicle would take.
 - **`api/`**: FastAPI service that serves launches and computes trajectories.
 - **`ui/`**: Streamlit app that draws the globe.
 
-Status: workspace scaffold only. The data layer, API, UI and Docker stack land
-in the pull requests that follow.
+Status: the data layer is in place. The API, UI and Docker stack land in the
+pull requests that follow.
+
+## Launch data
+
+Launches and pads come from Launch Library 2 and are stored in Postgres under
+Launch Library 2's own ids.
+
+- `db/src/globe_db/snapshot/launches.json` is a snapshot of real Launch
+  Library 2 records (the next 50 and the most recent 50 launches), cut down to
+  the fields the app uses. The database is seeded from it, so the app works
+  offline.
+- `globe-db refresh` loads the same set live. The free Launch Library 2 tier
+  allows 15 requests an hour; a refresh uses 2.
+
+```
+cp .env.example .env      # database settings; the values are local defaults
+uv run globe-db init      # apply migrations, then load the snapshot
+uv run globe-db refresh   # replace it with live data from Launch Library 2
+uv run globe-db snapshot  # rewrite the snapshot file from Launch Library 2
+```
+
+`globe-db` needs a running Postgres that matches `.env`. Until the Docker
+stack lands, start one with:
+
+```
+docker run -d --name globe-db -p 55432:5432 \
+  -e POSTGRES_USER=globe -e POSTGRES_PASSWORD=globe -e POSTGRES_DB=globe \
+  postgres:17-alpine
+```
 
 ## Development
 
