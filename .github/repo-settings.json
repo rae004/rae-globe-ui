@@ -1,0 +1,24 @@
+{
+  "required_status_checks": [
+    "lint",
+    "test",
+    "title / Conventional title"
+  ],
+  "labels": [
+    {
+      "name": "dependencies",
+      "color": "0366d6",
+      "description": "Dependency update"
+    },
+    {
+      "name": "python",
+      "color": "2b67c6",
+      "description": "Python code or dependencies"
+    },
+    {
+      "name": "ci",
+      "color": "bfd4f2",
+      "description": "Workflows and GitHub Actions"
+    }
+  ]
+}

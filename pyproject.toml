@@ -1,0 +1,41 @@
+# Root config: the uv workspace plus the lint, format and test settings shared
+# by db/, api/ and ui/.
+[project]
+name = "rae-globe-ui"
+# The version lives in git tags only (see rae004/.github#releases).
+version = "0.0.0"
+description = "Example globe UI: launch data in, orbital ground track out (FastAPI + Streamlit + Postgres)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["db", "api", "ui"]
+
+[tool.uv.sources]
+globe-db = { workspace = true }
+globe-api = { workspace = true }
+globe-ui = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "globe-db",
+    "globe-api",
+    "globe-ui",
+    "pytest>=9.2",
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["db/src", "api/src", "ui/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["db/tests", "api/tests", "ui/tests"]
+addopts = "-ra --import-mode=importlib"
