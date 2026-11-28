@@ -16,6 +16,11 @@
       "description": "Python code or dependencies"
     },
     {
+      "name": "docker",
+      "color": "0db7ed",
+      "description": "Dockerfiles, images and the compose stack"
+    },
+    {
       "name": "ci",
       "color": "bfd4f2",
       "description": "Workflows and GitHub Actions"

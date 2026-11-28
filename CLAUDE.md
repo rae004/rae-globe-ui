@@ -17,9 +17,21 @@ that computes trajectories, and a Streamlit globe.
 uv sync
 uv run pytest
 uv run ruff check . && uv run ruff format --check .
+docker compose up --build --wait     # whole stack: UI on 8501, API on 8001
 ```
 
 There is no Makefile, by choice. Use the commands directly.
+
+## Docker
+
+- One Dockerfile per service (`db/`, `api/`, `ui/`), each built from the repo
+  root because the uv workspace and `uv.lock` live there.
+- The virtualenv is at `/opt/venv`, outside `/app`, so the source bind mounts
+  in `docker-compose.yml` cannot hide it.
+- Host ports 5432 and 8000 are in use on the owner's machine; keep the
+  defaults at 55432, 8001 and 8501.
+- After changing a Dockerfile or the compose file, run the stack and check it
+  comes up healthy before opening a PR. CI does not build the images.
 
 ## Launch data
 

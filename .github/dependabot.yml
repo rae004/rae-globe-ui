@@ -20,6 +20,42 @@ updates:
       - dependencies
       - python
 
+  # Base images in the three Dockerfiles. They are what the services run on,
+  # so a bump is a `fix`, like any other runtime dependency.
+  - package-ecosystem: docker
+    directories:
+      - /db
+      - /api
+      - /ui
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "fix"
+      include: "scope"
+    labels:
+      - dependencies
+      - docker
+
+  # The Postgres image in docker-compose.yml.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "fix"
+      include: "scope"
+    labels:
+      - dependencies
+      - docker
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

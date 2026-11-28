@@ -1,0 +1,112 @@
+# Local development stack: Postgres, a one-off migrate-and-seed job, the API
+# and the UI. Source folders are mounted into the containers, so the API and UI
+# reload when a file is saved.
+#
+# Values come from the root .env file (see .env.example); every one has a
+# default, so the stack also starts without it.
+name: rae-globe-ui
+
+x-postgres-env: &postgres-env
+  POSTGRES_USER: ${POSTGRES_USER:-globe}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-globe}
+  POSTGRES_DB: ${POSTGRES_DB:-globe}
+
+# Inside the stack the database is reached by service name, not by the host
+# port published below.
+x-db-client-env: &db-client-env
+  <<: *postgres-env
+  POSTGRES_HOST: db
+  POSTGRES_PORT: "5432"
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment: *postgres-env
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Applies migrations, loads the launch snapshot into an empty database, then exits.
+  migrate:
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    command: ["globe-db", "init"]
+    environment: *db-client-env
+    volumes:
+      - ./db/src:/app/db/src
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command:
+      - uvicorn
+      - globe_api.main:app
+      - --host=0.0.0.0
+      - --port=8000
+      - --reload
+      - --reload-dir=/app/api/src
+      - --reload-dir=/app/db/src
+    environment: *db-client-env
+    ports:
+      - "${API_PORT:-8001}:8000"
+    volumes:
+      - ./api/src:/app/api/src
+      - ./db/src:/app/db/src
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8000/health")
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    command:
+      - streamlit
+      - run
+      - ui/src/globe_ui/app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+      - --server.runOnSave=true
+      - --browser.gatherUsageStats=false
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "${UI_PORT:-8501}:8501"
+    volumes:
+      - ./ui/src:/app/ui/src
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8501/_stcore/health")
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
