@@ -53,10 +53,10 @@ def main() -> None:
             f"Could not reach the API at {api_client.UiSettings().api_base_url}. "
             f"Is it running? ({error})"
         )
-        st.stop()
+        return
     if not launches:
         st.warning("The API has no launches. Load them with `uv run globe-db init`.")
-        st.stop()
+        return
 
     with st.sidebar:
         st.header("Launch")
