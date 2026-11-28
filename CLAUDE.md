@@ -32,6 +32,15 @@ There is no Makefile, by choice. Use the commands directly.
 - Tests run on in-memory SQLite. Check schema changes against real Postgres
   with `uv run globe-db init` before opening a PR.
 
+## Trajectories
+
+- `api/src/globe_api/orbit.py` is the maths; `profiles.py` is the table of
+  assumed orbits per Launch Library 2 orbit type. The assumptions must stay
+  labelled as assumptions in the API's `note` and in the README.
+- Launch Library 2's `celestial_body` is unreliable (the snapshot has a "Mars
+  Orbit" marked as Earth), so orbit support is decided by `orbit_abbrev` only.
+- API tests load the real snapshot into in-memory SQLite.
+
 ## Rules (from rae004/.github)
 
 - Never commit to `main`. Branch, open a PR, squash-merge.

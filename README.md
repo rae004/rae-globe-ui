@@ -8,8 +8,46 @@ globe and the orbital path the launched vehicle would take.
 - **`api/`**: FastAPI service that serves launches and computes trajectories.
 - **`ui/`**: Streamlit app that draws the globe.
 
-Status: the data layer is in place. The API, UI and Docker stack land in the
-pull requests that follow.
+Status: the data layer and the API are in place. The UI and Docker stack land
+in the pull requests that follow.
+
+## API
+
+```
+uv run uvicorn globe_api.main:app --reload --port 8001
+```
+
+Interactive docs are at http://localhost:8001/docs.
+
+| Route | Returns |
+|---|---|
+| `GET /health` | `{"status": "ok"}` |
+| `GET /launches?limit=&offset=` | Launches with their pads, earliest first |
+| `GET /launches/{id}` | One launch |
+| `GET /launches/{id}/trajectory?orbits=&points_per_orbit=` | The ascent from the pad and the ground track of the orbit that follows |
+
+### How a trajectory is worked out
+
+Launch Library 2 gives the kind of orbit a launch is aiming for, not its
+altitude or inclination. `api/src/globe_api/profiles.py` maps each orbit type
+to typical values. **These are this example's assumptions, not mission data.**
+
+| Orbit type | Assumed orbit | Launch heading |
+|---|---|---|
+| `LEO` | 500 km circular | Due east, so the inclination equals the pad's latitude |
+| `PO` | 600 km circular, 90° | Southbound |
+| `SSO` | 600 km circular, 97.8° | Southbound |
+| `MEO` | 20,200 km circular, 55° | Northbound |
+| `GTO`, `GEO`, `Direct-GEO` | 250 × 35,786 km transfer orbit | Due east |
+
+An inclination the pad's latitude cannot reach directly is moved to the
+nearest one it can. Any other orbit type (suborbital, unknown, another planet)
+returns `"orbit": null` with a note and no points.
+
+From the pad position, heading and assumed orbit, the API builds a two-line
+element set (TLE) for the moment of orbit insertion and propagates it with
+[SGP4](https://pypi.org/project/sgp4/). The TLE is included in the response.
+The ascent is a fixed 540 s, 1,800 km arc for drawing, not a simulated flight.
 
 ## Launch data
 
