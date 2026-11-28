@@ -8,8 +8,24 @@ globe and the orbital path the launched vehicle would take.
 - **`api/`**: FastAPI service that serves launches and computes trajectories.
 - **`ui/`**: Streamlit app that draws the globe.
 
-Status: the data layer and the API are in place. The UI and Docker stack land
-in the pull requests that follow.
+Status: the data layer, the API and the UI are in place. The Docker stack
+lands in the pull request that follows; until then, start the three parts by
+hand in this order: Postgres and `globe-db init` (see Launch data), the API,
+then the UI.
+
+## UI
+
+```
+uv run streamlit run ui/src/globe_ui/app.py
+```
+
+Open http://localhost:8501. Pick a launch in the sidebar to see its pad, the
+ascent and the orbit on the globe; drag to rotate, scroll to zoom. The app
+opens on the next launch whose orbit can be drawn. Below the globe are the
+assumed orbit's figures, the TLE and the trajectory as a table.
+
+The UI reads everything from the API at `API_BASE_URL` (see `.env.example`)
+and never touches the database. It follows the browser's light or dark theme.
 
 ## API
 
@@ -22,7 +38,7 @@ Interactive docs are at http://localhost:8001/docs.
 | Route | Returns |
 |---|---|
 | `GET /health` | `{"status": "ok"}` |
-| `GET /launches?limit=&offset=` | Launches with their pads, earliest first |
+| `GET /launches?limit=&offset=` | Launches with their pads, earliest first. `trajectory_supported` says whether an orbit can be drawn |
 | `GET /launches/{id}` | One launch |
 | `GET /launches/{id}/trajectory?orbits=&points_per_orbit=` | The ascent from the pad and the ground track of the orbit that follows |
 

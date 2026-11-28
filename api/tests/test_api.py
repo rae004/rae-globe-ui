@@ -127,3 +127,4 @@ def test_every_launch_in_the_snapshot_gets_an_answer(client):
         assert response.status_code == 200, launch["name"]
         has_orbit = response.json()["orbit"] is not None
         assert has_orbit == (launch["orbit_abbrev"] in PROFILES), launch["name"]
+        assert has_orbit == launch["trajectory_supported"], launch["name"]
