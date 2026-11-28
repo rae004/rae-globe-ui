@@ -2,7 +2,9 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+from globe_api.profiles import PROFILES
 
 
 class PadOut(BaseModel):
@@ -31,6 +33,12 @@ class LaunchOut(BaseModel):
     orbit_name: str | None
     orbit_abbrev: str | None
     pad: PadOut
+
+    @computed_field
+    @property
+    def trajectory_supported(self) -> bool:
+        """Whether the trajectory route can draw an orbit for this launch."""
+        return self.orbit_abbrev in PROFILES
 
 
 class PointOut(BaseModel):

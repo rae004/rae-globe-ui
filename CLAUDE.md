@@ -41,6 +41,16 @@ There is no Makefile, by choice. Use the commands directly.
   Orbit" marked as Earth), so orbit support is decided by `orbit_abbrev` only.
 - API tests load the real snapshot into in-memory SQLite.
 
+## UI
+
+- `ui/src/globe_ui/figures.py` builds the globe; `app.py` is the Streamlit
+  script; `api_client.py` is the only place that calls the API.
+- The series colours (orbit, ascent, pad) were checked for colour-blind
+  separation in both themes. Do not swap them for arbitrary colours, and keep
+  other pads in neutral grey.
+- UI tests stub `api_client` and run the script with Streamlit's `AppTest`.
+  After a visual change, also run the app and look at it in both themes.
+
 ## Rules (from rae004/.github)
 
 - Never commit to `main`. Branch, open a PR, squash-merge.
