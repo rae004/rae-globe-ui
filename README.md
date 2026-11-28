@@ -8,12 +8,40 @@ globe and the orbital path the launched vehicle would take.
 - **`api/`**: FastAPI service that serves launches and computes trajectories.
 - **`ui/`**: Streamlit app that draws the globe.
 
-Status: the data layer, the API and the UI are in place. The Docker stack
-lands in the pull request that follows; until then, start the three parts by
-hand in this order: Postgres and `globe-db init` (see Launch data), the API,
-then the UI.
+## Quick start
+
+Needs Docker with Compose.
+
+```
+cp .env.example .env            # optional: every value has the same default
+docker compose up --build --wait
+```
+
+| What | Where |
+|---|---|
+| The globe | http://localhost:8501 |
+| API docs | http://localhost:8001/docs |
+| Postgres | `localhost:55432`, user, password and database all `globe` |
+
+The stack is Postgres, a one-off `migrate` job (applies migrations and loads
+the launch snapshot into an empty database), the API and the UI. The `db/`,
+`api/` and `ui/` source folders are mounted into the containers: saving a file
+reloads the API or the UI, with no rebuild. Rebuild (`--build`) after changing
+dependencies.
+
+```
+docker compose logs -f                             # follow the logs
+docker compose run --rm migrate globe-db refresh   # load live Launch Library 2 data
+docker compose down                                # stop; the database is kept
+docker compose down -v                             # stop and delete the database
+```
+
+The host ports are set in `.env`. They default to 55432, 8001 and 8501 rather
+than 5432 and 8000, which are often already taken on a development machine.
 
 ## UI
+
+To run it outside Docker (the API must be running, see below):
 
 ```
 uv run streamlit run ui/src/globe_ui/app.py
@@ -28,6 +56,9 @@ The UI reads everything from the API at `API_BASE_URL` (see `.env.example`)
 and never touches the database. It follows the browser's light or dark theme.
 
 ## API
+
+To run it outside Docker (Postgres must be running and loaded, see Launch
+data):
 
 ```
 uv run uvicorn globe_api.main:app --reload --port 8001
@@ -79,19 +110,14 @@ Launch Library 2's own ids.
 
 ```
 cp .env.example .env      # database settings; the values are local defaults
-uv run globe-db init      # apply migrations, then load the snapshot
-uv run globe-db refresh   # replace it with live data from Launch Library 2
+uv run globe-db init      # apply migrations; load the snapshot if there are no launches
+uv run globe-db seed      # load the snapshot, overwriting launches it contains
+uv run globe-db refresh   # load live data from Launch Library 2
 uv run globe-db snapshot  # rewrite the snapshot file from Launch Library 2
 ```
 
-`globe-db` needs a running Postgres that matches `.env`. Until the Docker
-stack lands, start one with:
-
-```
-docker run -d --name globe-db -p 55432:5432 \
-  -e POSTGRES_USER=globe -e POSTGRES_PASSWORD=globe -e POSTGRES_DB=globe \
-  postgres:17-alpine
-```
+`globe-db` needs a running Postgres that matches `.env`. `docker compose up
+--wait db` starts just the database.
 
 ## Development
 
